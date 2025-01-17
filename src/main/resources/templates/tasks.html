@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: url('https://source.unsplash.com/1600x900/?dock') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .board-column {
+            min-width: 250px;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <h1 class="text-center mb-4">Task Board</h1>
+
+    <div class="d-flex overflow-auto">
+        <div class="board-column bg-light p-3 rounded me-3"
+             th:each="column:${columns}"
+             th:id="${column.getId()}">
+            <h5 th:text="${column.getTitle()}"></h5>
+            <div id="open-tasks" class="mb-3"></div>
+            <button class="btn btn-primary btn-sm w-100" th:onclick="'openModal(' + ${column.getId()} + ')'">+ Add Task</button>
+        </div>
+    </div>
+    <button type="button"
+            class="btn btn-primary btn-lg"
+            style="position: absolute; width: 200px;"
+            data-bs-toggle="modal"
+            data-bs-target="#creatColumnModal">
+        Create column
+    </button>
+</div>
+
+
+<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskModalLabel">Add Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/tasks/add" method="post">
+                    <div class="mb-3">
+                        <label for="taskName" class="form-label">Task Name</label>
+                        <input type="text" class="form-control" id="taskName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addTask()">Add Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="creatColumnModal" tabindex="-1" aria-labelledby="creatColumnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="creatColumnModalLabel">Add New Column</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form th:action="@{/columns/add}" method="post">
+                    <!--                    <input type="hidden" name="_csrf" th:value="${_csrf.getToken()}">-->
+                    <!--                    <input type="hidden" id="courseId" name="course_id" th:value="${}">-->
+                    <div class="mb-3">
+                        <label for="columnName" class="form-label">Column Name</label>
+                        <input type="text" class="form-control" id="columnName" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="orderNumber" class="form-label">Order Number</label>
+                        <input type="number" class="form-control" id="orderNumber" name="orderNumber" required>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="agreeTerms" name="isCompleted">
+                        <label class="form-check-label" for="agreeTerms">
+                            Is Completed
+                        </label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save column</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+<script>
+    let currentColumn = ''; // Переменная для хранения текущей колонки
+
+    function openModal(columnId) {
+        currentColumn = columnId; // Сохраняем переданный columnId
+        const modal = new bootstrap.Modal(document.getElementById('taskModal')); // Инициализируем модальное окно
+        modal.show(); // Показываем модальное окно
+    }
+
+    function addTask() {
+        const taskName = document.getElementById('taskName').value; // Получаем текст задачи из поля ввода
+        if (taskName.trim()) { // Проверяем, что текст задачи не пустой
+            const taskElement = document.createElement('div'); // Создаем новый элемент <div>
+            taskElement.className = 'p-2 bg-secondary text-white rounded mb-2'; // Стили для задачи
+            taskElement.textContent = taskName; // Устанавливаем текст задачи
+            document.getElementById(`tasks-${currentColumn}`).appendChild(taskElement); // Добавляем задачу в блок задач текущей колонки
+            document.getElementById('taskName').value = ''; // Очищаем поле ввода
+            const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal')); // Закрываем модальное окно
+            modal.hide();
+        }
+    }
+
+</script>
+</body>
+</html>
